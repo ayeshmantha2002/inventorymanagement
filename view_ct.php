@@ -1,117 +1,184 @@
 <?php
 session_start();
 
-// Define time slots
-$timeSlots = array(
-    'slot1' => '9:00 AM - 10:00 AM',
-    'slot2' => '10:00 AM - 11:00 AM',
-    'slot3' => '11:00 AM - 12:00 PM',
-    'slot4' => '01:00 PM - 02:00 PM',
-    'slot5' => '02:00 PM - 03:00 PM',
-    'slot6' => '03:00 PM - 04:00 PM',
-    'slot7' => '04:00 PM - 05:00 PM',
-    // Add more slots if needed
-);
+include("config.php");
 
-// Initialize availability for each slot
-if (!isset($_SESSION['availability'])) {
-    $_SESSION['availability'] = array_fill_keys(array_keys($timeSlots), true);
-}
+$BookingData = "SELECT * FROM `appointment` WHERE `Status` = 1 ORDER BY `Date`";
+$BookingData_query = mysqli_query($db, $BookingData);
 
-// Check if slot is available
-function isSlotAvailable($slot) {
-    return isset($_SESSION['availability'][$slot]) && $_SESSION['availability'][$slot];
-}
+$AllData = "SELECT * FROM `appointment` WHERE `Status` != 1 ORDER BY `Date`";
+$AllData_query = mysqli_query($db, $AllData);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanning Machine Booking</title>
+    <title> CT Scanning Machine Booking </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            font-family: sans-serif;
         }
 
-        h2 {
-            text-align: center;
+        .navigation {
+            width: 100%;
+            height: 80px;
+            background-color: #4CAF50;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+        .navigation nav {
+            width: 1366px;
+            height: 80px;
+            margin: auto;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+        }
+
+        .navigation nav i {
+            color: #fff;
+            font-size: 20px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .content {
+            width: 1366px;
+            margin: auto;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
         table {
-            border-collapse: collapse;
             width: 100%;
+            border-collapse: collapse;
         }
 
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+        th,
+        td {
+            border: 1px solid black;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
-        th {
-            background-color: #f2f2f2;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
         }
     </style>
 </head>
+
 <body>
+    <div class="navigation">
+        <nav>
+            <a href="view.php">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+        </nav>
+    </div>
+    <div class="content">
+        <?php
+        if (mysqli_num_rows($BookingData_query) > 0) {
+            echo "<h1>
+                    New Booking
+                </h1>
+                <table>
+            <thead>
+                <tr>
+                    <th> Name </th>
+                    <th> Hospital </th>
+                    <th> Date </th>
+                    <th> Time </th>
+                    <th> Action </th>
+                </tr>
+            </thead>
+            <tbody>";
+            while ($fetchData = mysqli_fetch_assoc($BookingData_query)) {
+                $ID = $fetchData['ID'];
+                $Hospital = $fetchData['Hospital'];
+                $Date = $fetchData['Date'];
+                $Time = $fetchData['Time'];
+                $Username = $fetchData['Username'];
+                $Status = $fetchData['Status'];
 
-<h2>Scanning Machine Booking</h2>
+                $user = "SELECT `first_name`, `last_name` FROM `register` WHERE `username` = '{$Username}'";
+                $user_Query = mysqli_query($db, $user);
 
-<form method="post">
-    <table>
-        <tr>
-            <th>Time Slot</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-        <?php foreach($timeSlots as $slot => $time): ?>
-            <tr>
-                <td><?php echo $time; ?></td>
-                <td><?php echo (isSlotAvailable($slot) ? 'Available' : 'Not Available'); ?></td>
-                <td>
-                    <!-- Remove booking and cancel options -->
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-</form>
-<!-- Removed booking and cancel options -->
+                if ($user_Query) {
+                    $userFetch = mysqli_fetch_assoc($user_Query);
+                    $Name = $userFetch['first_name'] . " " . $userFetch['last_name'];
+                }
 
-<form method="post" action="login.php">
-    <button type="submit">Logout</button>
-</form>
+                echo "<tr>";
+                echo "<td> $Name </td>";
+                echo "<td> $Hospital </td>";
+                echo "<td> $Date </td>";
+                echo "<td> $Time </td>";
+                echo "<td> <a href='accept.php?CTID={$ID}'> Accept </a> | <a href='cancel.php?CTID={$ID}'> Cancel </a> </td>";
+                echo "</tr>";
+            }
+            echo "</tbody>";
+            echo "</table>";
+            echo "<br><br><br>";
+        }
 
-<form method="post" action="view.php">
-    <button type="submit">Back</button>
-</form>
+        if (mysqli_num_rows($AllData_query) > 0) {
+            echo "<h1>
+                    Booking List
+                </h1>
+                <table>
+            <thead>
+                <tr>
+                    <th> Name </th>
+                    <th> Hospital </th>
+                    <th> Date </th>
+                    <th> Time </th>
+                    <th> Action </th>
+                </tr>
+            </thead>
+            <tbody>";
+            while ($fetchAllData = mysqli_fetch_assoc($AllData_query)) {
+                $ID = $fetchAllData['ID'];
+                $Hospital = $fetchAllData['Hospital'];
+                $Date = $fetchAllData['Date'];
+                $Time = $fetchAllData['Time'];
+                $Username = $fetchAllData['Username'];
+                $Status = $fetchAllData['Status'];
 
+                if ($Status == 0) {
+                    $action = "<span style='color: red;'> Canceled </span>";
+                } elseif ($Status == 2) {
+                    $action = "<span style='color: blue;'> Acceped </span>";
+                }
+
+                $user = "SELECT `first_name`, `last_name` FROM `register` WHERE `username` = '{$Username}'";
+                $user_Query = mysqli_query($db, $user);
+
+                if ($user_Query) {
+                    $userFetch = mysqli_fetch_assoc($user_Query);
+                    $Name = $userFetch['first_name'] . " " . $userFetch['last_name'];
+                }
+
+                echo "<tr>";
+                echo "<td> $Name </td>";
+                echo "<td> $Hospital </td>";
+                echo "<td> $Date </td>";
+                echo "<td> $Time </td>";
+                echo "<td> $action </td>";
+                echo "</tr>";
+            }
+            echo "</tbody>";
+            echo "</table>";
+            echo "<br><br><br>";
+        }
+        ?>
+    </div>
 </body>
+
 </html>

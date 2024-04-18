@@ -31,6 +31,10 @@ if (isset($_POST['submit'])) {
         $results = mysqli_query($db, $query);
 
         if (mysqli_num_rows($results) == 1) {
+            $fetchUserDetails = mysqli_fetch_assoc($results);
+            $_SESSION['first_name'] = $fetchUserDetails['first_name'];
+            $_SESSION['last_name'] = $fetchUserDetails['last_name'];
+            $_SESSION['email'] = $fetchUserDetails['email'];
             $_SESSION['username'] = $username;
             $_SESSION['success'] = "You are now logged in";
             header('location: index.php');

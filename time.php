@@ -39,6 +39,19 @@ if (isset($_POST['submit'])) {
 
     $insert = "INSERT INTO `appointment` (`Hospital` , `Date`, `Time` , `Username` , `Status`) VALUE ('{$_COOKIE['Hospital']}', '{$_COOKIE['Date']}', '{$Time}', '{$_SESSION['username']}', 1)";
     $insert_query = mysqli_query($db, $insert);
+
+
+    $to =   $_SESSION['email'];
+    $sender =   'yourmail@gmail.com'; // send wenna oni mail eka
+    $email_subject  =   " titel "; // mokak hari Subject ekak denna.
+    $email_body =   '<p>Dear ' . $_SESSION['first_name'] . " " . $_SESSION['last_name'] . '</p>';
+    $email_body .=   "<p> MESSAGE </p><br>"; // userta send wenn oni message eka type karanna
+    $email_body .=   " <P> MESSAGE </P><br>"; // optional message. oni naththam me line eka ain karanna.
+
+    $header =   "From: {$sender}\r\nContent-type: text/html;";
+
+    $status = mail($to, $email_subject, $email_body, $header);
+
     if ($insert_query) {
         setcookie("Hospital", "", time() - 36000);
         setcookie("Date", "", time() - 36000);
@@ -51,6 +64,17 @@ if (isset($_GET['cancel'])) {
     $update = "UPDATE `appointment` SET `Status` = 0 WHERE `ID` = {$cancel}";
     $updateQuery = mysqli_query($db, $update);
     if ($updateQuery) {
+
+        $to =   $_SESSION['email'];
+        $sender =   'yourmail@gmail.com'; // send wenna oni mail eka
+        $email_subject  =   " titel "; // mokak hari Subject ekak denna.
+        $email_body =   '<p>Dear ' . $_SESSION['first_name'] . " " . $_SESSION['last_name'] . '</p>';
+        $email_body .=   "<p> MESSAGE </p><br>"; // userta send wenn oni message eka type karanna
+        $email_body .=   " <P> MESSAGE </P><br>"; // optional message. oni naththam me line eka ain karanna.
+
+        $header =   "From: {$sender}\r\nContent-type: text/html;";
+
+        $status = mail($to, $email_subject, $email_body, $header);
         header("location: time.php");
     }
 }
